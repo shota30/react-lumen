@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  backend:
+    container_name: php
+    build: ./Docker/php
+    volumes:
+      - ./var/www/backend:/var/www/backend
+    working_dir: /var/www/backend
+    links:
+      - mysql
+    environment:
+      DB_PORT: 3306
+      DB_HOST: mysql
+      DB_DATABASE: test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      
+  nginx:
+    build: ./Docker/nginx
+    container_name: web
+    volumes:
+      - ./Docker/nginx/conf/default.conf:/etc/nginx/conf.d/default.conf
+      - ./var/www/backend/public:/var/www/backend/public
+    ports:
+      - 8080:80
+    links:
+      - backend
+      
+  mysql:
+    build: ./Docker/mysql
+    container_name: db
+    environment:
+      MYSQL_DATABASE: test
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./Docker/mysql/initdb.d:/docker-entrypoint-initdb.d
+      - ./Docker/mysql/conf.d:/etc/mysql/conf.d
+      - ./Docker/mysql/mysql_data:/var/lib/mysql
+    ports:
+      - 13300:3306
